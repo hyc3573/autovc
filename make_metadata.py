@@ -1,6 +1,7 @@
 """
 Generate speaker embeddings and metadata for training
 """
+
 import os
 import pickle
 from model_bl import D_VECTOR
@@ -21,16 +22,15 @@ len_crop = 128
 # Directory containing mel-spectrograms
 rootDir = './spmel'
 dirName, subdirList, _ = next(os.walk(rootDir))
-print('Found directory: %s' % dirName)
+print(f'Found directory: {dirName}')
 
 
 speakers = []
 for speaker in sorted(subdirList):
-    print('Processing speaker: %s' % speaker)
-    utterances = []
-    utterances.append(speaker)
+    print(f'Processing speaker: {speaker}')
+    utterances = [speaker]
     _, _, fileList = next(os.walk(os.path.join(dirName,speaker)))
-    
+
     # make speaker embedding
     assert len(fileList) >= num_uttrs
     idx_uttrs = np.random.choice(len(fileList), size=num_uttrs, replace=False)
@@ -46,14 +46,16 @@ for speaker in sorted(subdirList):
         left = np.random.randint(0, tmp.shape[0]-len_crop)
         melsp = torch.from_numpy(tmp[np.newaxis, left:left+len_crop, :]).cuda()
         emb = C(melsp)
-        embs.append(emb.detach().squeeze().cpu().numpy())     
+        embs.append(emb.detach().squeeze().cpu().numpy())
     utterances.append(np.mean(embs, axis=0))
-    
+
     # create file list
-    for fileName in sorted(fileList):
-        utterances.append(os.path.join(speaker,fileName))
+    utterances.extend(
+        os.path.join(speaker, fileName) for fileName in sorted(fileList)
+    )
+
     speakers.append(utterances)
-    
+
 with open(os.path.join(rootDir, 'train.pkl'), 'wb') as handle:
     pickle.dump(speakers, handle)
 

@@ -15,10 +15,10 @@ class Utterances(data.Dataset):
         self.root_dir = root_dir
         self.len_crop = len_crop
         self.step = 10
-        
+
         metaname = os.path.join(self.root_dir, "train.pkl")
         meta = pickle.load(open(metaname, "rb"))
-        
+
         """Load data using multiprocessing"""
         manager = Manager()
         meta = manager.list(meta)
@@ -31,21 +31,18 @@ class Utterances(data.Dataset):
             processes.append(p)
         for p in processes:
             p.join()
-            
+
         self.train_dataset = list(dataset)
         self.num_tokens = len(self.train_dataset)
-        
+
         print('Finished loading the dataset...')
         
         
     def load_data(self, submeta, dataset, idx_offset):  
-        for k, sbmt in enumerate(submeta):    
+        for k, sbmt in enumerate(submeta):
             uttrs = len(sbmt)*[None]
             for j, tmp in enumerate(sbmt):
-                if j < 2:  # fill in speaker id and embedding
-                    uttrs[j] = tmp
-                else: # load the mel-spectrograms
-                    uttrs[j] = np.load(os.path.join(self.root_dir, tmp))
+                uttrs[j] = tmp if j < 2 else np.load(os.path.join(self.root_dir, tmp))
             dataset[idx_offset+k] = uttrs
                    
         
@@ -81,15 +78,16 @@ def get_loader(root_dir, batch_size=16, len_crop=128, num_workers=0):
     """Build and return a data loader."""
     
     dataset = Utterances(root_dir, len_crop)
-    
+
     worker_init_fn = lambda x: np.random.seed((torch.initial_seed()) % (2**32))
-    data_loader = data.DataLoader(dataset=dataset,
-                                  batch_size=batch_size,
-                                  shuffle=True,
-                                  num_workers=num_workers,
-                                  drop_last=True,
-                                  worker_init_fn=worker_init_fn)
-    return data_loader
+    return data.DataLoader(
+        dataset=dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=num_workers,
+        drop_last=True,
+        worker_init_fn=worker_init_fn,
+    )
 
 
 

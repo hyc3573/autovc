@@ -43,7 +43,7 @@ targetDir = './spmel'
 
 
 dirName, subdirList, _ = next(os.walk(rootDir))
-print('Found directory: %s' % dirName)
+print(f'Found directory: {dirName}')
 
 for subdir in sorted(subdirList):
     print(subdir)

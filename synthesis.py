@@ -18,7 +18,7 @@ device = torch.device("cuda" if use_cuda else "cpu")
 
 def build_model():
     
-    model = getattr(builder, hparams.builder)(
+    return getattr(builder, hparams.builder)(
         out_channels=hparams.out_channels,
         layers=hparams.layers,
         stacks=hparams.stacks,
@@ -37,7 +37,6 @@ def build_model():
         scalar_input=True,
         legacy=hparams.legacy,
     )
-    return model
 
 
 
