@@ -12,10 +12,9 @@ class D_VECTOR(nn.Module):
         
         
     def forward(self, x):
-        self.lstm.flatten_parameters()            
+        self.lstm.flatten_parameters()
         lstm_out, _ = self.lstm(x)
         embeds = self.embedding(lstm_out[:,-1,:])
-        norm = embeds.norm(p=2, dim=-1, keepdim=True) 
-        embeds_normalized = embeds.div(norm)
-        return embeds_normalized
+        norm = embeds.norm(p=2, dim=-1, keepdim=True)
+        return embeds.div(norm)
     

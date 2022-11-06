@@ -23,7 +23,7 @@ class Solver(object):
         # Training configurations.
         self.batch_size = config.batch_size
         self.num_iters = config.num_iters
-        
+
         # Miscellaneous.
         self.use_cuda = torch.cuda.is_available()
         self.device = torch.device('cuda:0' if self.use_cuda else 'cpu')
@@ -54,10 +54,10 @@ class Solver(object):
     def train(self):
         # Set data loader.
         data_loader = self.vcc_loader
-        
+
         # Print logs in specified order
         keys = ['G/loss_id','G/loss_id_psnt','G/loss_cd']
-            
+
         # Start training.
         print('Start training...')
         start_time = time.time()
@@ -73,23 +73,23 @@ class Solver(object):
             except:
                 data_iter = iter(data_loader)
                 x_real, emb_org = next(data_iter)
-            
-            
-            x_real = x_real.to(self.device) 
+
+
+            x_real = x_real.to(self.device)
             emb_org = emb_org.to(self.device) 
-                        
-       
+
+
             # =================================================================================== #
             #                               2. Train the generator                                #
             # =================================================================================== #
-            
+
             self.G = self.G.train()
-                        
+
             # Identity mapping loss
             x_identic, x_identic_psnt, code_real = self.G(x_real, emb_org, emb_org)
-            g_loss_id = F.mse_loss(x_real, x_identic)   
+            g_loss_id = F.mse_loss(x_real, x_identic)
             g_loss_id_psnt = F.mse_loss(x_real, x_identic_psnt)   
-            
+
             # Code semantic loss.
             code_reconst = self.G(x_identic_psnt, emb_org, None)
             g_loss_cd = F.l1_loss(code_real, code_reconst)
@@ -102,8 +102,7 @@ class Solver(object):
             self.g_optimizer.step()
 
             # Logging.
-            loss = {}
-            loss['G/loss_id'] = g_loss_id.item()
+            loss = {'G/loss_id': g_loss_id.item()}
             loss['G/loss_id_psnt'] = g_loss_id_psnt.item()
             loss['G/loss_cd'] = g_loss_cd.item()
 
@@ -115,7 +114,7 @@ class Solver(object):
             if (i+1) % self.log_step == 0:
                 et = time.time() - start_time
                 et = str(datetime.timedelta(seconds=et))[:-7]
-                log = "Elapsed [{}], Iteration [{}/{}]".format(et, i+1, self.num_iters)
+                log = f"Elapsed [{et}], Iteration [{i + 1}/{self.num_iters}]"
                 for tag in keys:
                     log += ", {}: {:.4f}".format(tag, loss[tag])
                 print(log)
